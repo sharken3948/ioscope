@@ -1,11 +1,24 @@
 export type Chain = 'arc' | 'base' | 'soneium'
 
-const BASE_URLS: Record<Chain, string> = {
-  arc: 'https://testnet.arcscan.app/api/v2',
-  base: 'https://base.blockscout.com/api/v2',
-  soneium: 'https://soneium.blockscout.com/api/v2',
+export interface ChainConfig {
+  nativeToken: string
+  usdcDecimals: number
+  gasToken: string
 }
 
+export const CHAIN_CONFIGS: Record<Chain, ChainConfig> = {
+  arc:     { nativeToken: 'USDC', usdcDecimals: 18, gasToken: 'USDC' },
+  base:    { nativeToken: 'ETH',  usdcDecimals: 6,  gasToken: 'ETH'  },
+  soneium: { nativeToken: 'ETH',  usdcDecimals: 6,  gasToken: 'ETH'  },
+}
+
+const CHAIN_IDS: Record<Chain, number> = {
+  arc: 5042002,
+  base: 8453,
+  soneium: 1868,
+}
+
+// V1_URLS kept for getPaginatedTxlist / getPaginatedTokenTx (dead code, not migrated yet)
 const V1_URLS: Record<Chain, string> = {
   arc: 'https://testnet.arcscan.app/api',
   base: 'https://base.blockscout.com/api',
@@ -359,16 +372,18 @@ export interface AddressActivity {
 }
 
 export async function getAddressActivity(chain: Chain, address: string): Promise<AddressActivity> {
-  const base = V1_URLS[chain]
+  const chainId = CHAIN_IDS[chain]
+  const key = process.env.BLOCKSCOUT_PRO_API_KEY ?? ''
+  const proBase = `https://api.blockscout.com/v2/api?chain_id=${chainId}&apikey=${key}`
   const addrLower = address.toLowerCase()
   const opts = { headers: { Accept: 'application/json' }, cache: 'no-store' } as const
 
   const [txRes, tokenRes, nftRes] = await Promise.allSettled([
-    fetch(`${base}?module=account&action=txlist&address=${address}`, opts)
+    fetch(`${proBase}&module=account&action=txlist&address=${address}`, opts)
       .then((r) => r.json() as Promise<V1Response<V1TxlistItem>>),
-    fetch(`${base}?module=account&action=tokentx&address=${address}`, opts)
+    fetch(`${proBase}&module=account&action=tokentx&address=${address}`, opts)
       .then((r) => r.json() as Promise<V1Response<V1TokenTxItem>>),
-    fetch(`${base}?module=account&action=tokennfttx&address=${address}`, opts)
+    fetch(`${proBase}&module=account&action=tokennfttx&address=${address}`, opts)
       .then((r) => r.json() as Promise<V1Response<V1TokenTxItem>>),
   ])
 
@@ -392,7 +407,7 @@ export async function getAddressActivity(chain: Chain, address: string): Promise
   const totalWei = txsList
     .filter((tx) => tx.from?.toLowerCase() === addrLower)
     .reduce((sum, tx) => sum + BigInt(tx.value || '0'), BigInt(0))
-  const nativeVolumeOut = (Number(totalWei / BigInt(1e9)) / 1e9).toString()
+  const nativeVolumeOut = totalWei.toString()
 
   const gasSpentWei = txsList
     .filter((tx) => tx.from?.toLowerCase() === addrLower)
@@ -711,7 +726,9 @@ export interface SmartContract {
 // ─── V2 fetch helpers ─────────────────────────────────────────────────────────
 
 async function fetchBlockscout<T>(chain: Chain, path: string): Promise<T> {
-  const url = `${BASE_URLS[chain]}${path}`
+  const chainId = CHAIN_IDS[chain]
+  const key = process.env.BLOCKSCOUT_PRO_API_KEY ?? ''
+  const url = `https://api.blockscout.com/${chainId}/api/v2${path}?apikey=${key}`
   const res = await fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store' })
   if (!res.ok) throw new Error(`Blockscout ${res.status}: ${path}`)
   return res.json() as Promise<T>
