@@ -24,6 +24,7 @@ export interface ReportData {
     longestActiveStreak: number
     deployedContractCount: number
     gasSpent: number | null
+    gasToken: string
     peakHours: number[]
     usdcBalance: string | null
   }
@@ -223,7 +224,7 @@ export function generateReport(data: ReportData): void {
     mc('Balance', primaryBal),
     mc('TX Volume Out', fmtVolume(data.metrics.tokenVolumeOut, sym), `${data.metrics.txFrequencyPerDay.toFixed(1)} tx/day`),
     mc('Active Days', data.metrics.activeDaySpread.toLocaleString(), `${data.metrics.activeMonths} active months`),
-    mc('Gas Spent', data.metrics.gasSpent != null ? `${data.metrics.gasSpent.toFixed(2)} USDC` : '—'),
+    mc('Gas Spent', data.metrics.gasSpent != null ? `${data.metrics.gasSpent.toFixed(data.metrics.gasToken === 'ETH' ? 4 : 2)} ${data.metrics.gasToken}` : '—'),
     mc('Longest Streak', `${data.metrics.longestActiveStreak} days`),
     mc('Deployed Contracts', (data.metrics.deployedContractCount ?? 0).toLocaleString()),
     mc('Last Active', lastActiveText(data.metrics.lastActivity)),

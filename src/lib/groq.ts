@@ -195,7 +195,10 @@ Return ONLY valid JSON, no markdown:
         parsed.txTypeBreakdown && typeof parsed.txTypeBreakdown === 'object'
           ? parsed.txTypeBreakdown
           : {},
-      activityPattern: String(parsed.activityPattern || ''),
+      activityPattern: (() => {
+        const ap = String(parsed.activityPattern || '').trim()
+        return ap.includes(' ') ? ap : ''
+      })(),
     }
   } catch (err) {
     console.log('[groq] GROQ FAILED — returning neutral scores:', err instanceof Error ? err.message : err)

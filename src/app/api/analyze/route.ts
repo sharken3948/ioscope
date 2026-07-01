@@ -11,6 +11,7 @@ import {
   computeWalletSummary,
   computeMetrics,
   detectPatterns,
+  CHAIN_CONFIGS,
   type Chain,
 } from '@/lib/blockscout'
 import { analyzeAddress } from '@/lib/groq'
@@ -129,7 +130,7 @@ export async function POST(req: NextRequest) {
     if (chain === 'arc') {
       const usdc = tokens.find((t) => t.token.symbol === 'USDC')
       if (usdc) {
-        const decimals = parseInt(usdc.token.decimals ?? '6', 10)
+        const decimals = parseInt(usdc.token.decimals ?? String(CHAIN_CONFIGS[chain].usdcDecimals), 10)
         const raw = BigInt(usdc.value)
         const whole = raw / BigInt(10 ** decimals)
         const frac = raw % BigInt(10 ** decimals)
@@ -210,8 +211,8 @@ export async function POST(req: NextRequest) {
     const balanceWei = info.coin_balance ?? '0'
     const publicTags = (info.public_tags ?? []).map((t) => t.label)
 
-    // Volume out for display: USDC units for ARC, ETH wei for others
-    const volumeOut = chain === 'arc' ? effectiveTokenVolumeOut : walletSummary.totalVolumeOut
+    // Volume out for display: USDC units for ARC, ETH (human-readable) for others
+    const volumeOut = chain === 'arc' ? effectiveTokenVolumeOut : (activity?.nativeVolumeOut ?? '0')
     const volumeSymbol = chain === 'arc' ? 'USDC' : 'ETH'
 
     const aiInput = {
@@ -373,6 +374,7 @@ export async function POST(req: NextRequest) {
         usdcBalance: chain === 'arc' ? primaryBalance.value : null,
         gasUsed: counters ? parseInt(counters.gas_usage_count, 10) || null : null,
         gasSpent,
+        gasToken: CHAIN_CONFIGS[chain].gasToken,
       },
       detectedPatterns,
       primaryBalance,

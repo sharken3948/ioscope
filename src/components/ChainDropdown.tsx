@@ -14,8 +14,8 @@ const CHAIN_GROUPS = [
   {
     label: 'Mainnet',
     items: [
-      { id: 'base' as Chain, name: 'Base', disabled: true },
-      { id: 'soneium' as Chain, name: 'Soneium', disabled: true },
+      { id: 'base' as Chain, name: 'Base', disabled: false },
+      { id: 'soneium' as Chain, name: 'Soneium', disabled: false },
     ],
   },
 ]

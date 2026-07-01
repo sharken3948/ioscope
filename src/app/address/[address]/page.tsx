@@ -72,6 +72,7 @@ interface AnalysisResult {
     usdcBalance: string | null
     gasUsed: number | null
     gasSpent: number | null
+    gasToken: string
   }
   detectedPatterns: {
     mev: boolean
@@ -107,8 +108,8 @@ interface AnalysisResult {
 
 const CHAIN_LABELS: Record<Chain, string> = {
   arc: 'ARC Testnet',
-  base: 'Base',
-  soneium: 'Soneium',
+  base: 'Base Mainnet',
+  soneium: 'Soneium Mainnet',
 }
 
 const EXPLORER_BASES: Record<Chain, string> = {
@@ -286,6 +287,7 @@ function DashboardInner() {
         gasSpent: data.metrics.gasSpent,
         peakHours: data.metrics.peakHours,
         usdcBalance: data.metrics.usdcBalance,
+        gasToken: data.metrics.gasToken,
       },
       riskScore: data.riskScore,
       botProbability: data.botProbability,
@@ -358,35 +360,35 @@ function DashboardInner() {
               </div>
             )}
             <div className="flex items-center flex-wrap gap-2">
-              <span
-                style={{
-                  color: data?.addressInfo.ens_domain_name ? 'var(--text-muted)' : 'var(--text)',
-                  fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
-                  fontSize: '15px',
-                  fontWeight: 600,
-                  letterSpacing: '0.03em',
-                }}
-                title={address}
-              >
-                {address}
-              </span>
-              <span
-                className="flex items-center gap-1.5 text-xs px-2 py-0.5 rounded font-semibold shrink-0 ml-3"
-                style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
-              >
+              <div className="flex flex-col items-start gap-1 md:flex-row md:items-center md:gap-3 shrink-0">
                 <span
+                  className="text-sm md:text-[15px]"
                   style={{
-                    display: 'inline-block',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: 'var(--accent)',
-                    animation: 'arc-pulse 2s ease-in-out infinite',
-                    flexShrink: 0,
+                    color: data?.addressInfo.ens_domain_name ? 'var(--text-muted)' : 'var(--text)',
+                    fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace",
+                    fontWeight: 600,
+                    letterSpacing: '0.03em',
                   }}
-                />
-                {CHAIN_LABELS[chain]}
-              </span>
+                  title={address}
+                >
+                  <span className="md:hidden">{address.slice(0, 10)}…{address.slice(-8)}</span>
+                  <span className="hidden md:inline">{address}</span>
+                </span>
+                <span
+                  className="flex items-center gap-1.5 md:gap-2.5 px-2.5 md:px-4 py-1 md:py-1.5 rounded-lg font-bold text-sm md:text-[18px]"
+                  style={{ background: 'var(--accent)28', color: 'var(--accent)', letterSpacing: '0.01em', border: '1.5px solid var(--accent)55' }}
+                >
+                  <span
+                    className="inline-block rounded-full shrink-0 w-2 h-2 md:w-3 md:h-3"
+                    style={{
+                      background: 'var(--accent)',
+                      boxShadow: '0 0 8px var(--accent)',
+                      animation: 'arc-pulse 2s ease-in-out infinite',
+                    }}
+                  />
+                  {CHAIN_LABELS[chain]}
+                </span>
+              </div>
               {data?.addressInfo.is_scam && (
                 <span
                   className="text-xs px-2 py-0.5 rounded font-semibold shrink-0"
@@ -545,8 +547,8 @@ function DashboardInner() {
                   />
                   <MetricCard
                     label="Gas Spent"
-                    value={data.metrics.gasSpent?.toFixed(2) ?? '—'}
-                    sub="USDC"
+                    value={data.metrics.gasSpent?.toFixed(data.metrics.gasToken === 'ETH' ? 4 : 2) ?? '—'}
+                    sub={data.metrics.gasToken}
                     icon={<Fuel size={14} />}
                   />
                   <MetricCard
@@ -684,7 +686,7 @@ function DashboardInner() {
                     >
                       {data.aiAnalysis.userType}
                     </span>
-                    {data.aiAnalysis.activityPattern && (
+                    {data.aiAnalysis.activityPattern && data.aiAnalysis.activityPattern.includes(' ') && (
                       <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                         {data.aiAnalysis.activityPattern}
                       </span>

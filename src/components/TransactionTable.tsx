@@ -58,7 +58,13 @@ export function TransactionTable({ transactions, address, explorerBase }: Transa
       <table className="w-full text-sm">
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border)' }}>
-            {['Hash', 'Type', 'Value', 'Age', 'Dir'].map((h) => (
+            <th
+              className="hidden md:table-cell text-left py-2 px-3 font-medium text-xs uppercase tracking-wider"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Hash
+            </th>
+            {['Type', 'Value', 'Age', 'Dir'].map((h) => (
               <th
                 key={h}
                 className="text-left py-2 px-3 font-medium text-xs uppercase tracking-wider"
@@ -100,7 +106,7 @@ export function TransactionTable({ transactions, address, explorerBase }: Transa
                 className="transition-opacity hover:opacity-70"
                 style={{ borderBottom: '1px solid var(--border)' }}
               >
-                <td className="py-3 px-3">
+                <td className="hidden md:table-cell py-3 px-3">
                   <a
                     href={txUrl}
                     target="_blank"
