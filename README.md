@@ -23,7 +23,7 @@ Onchain wallet analysis tool for ARC Testnet, Base, and Soneium. Paste any walle
 | Framework | Next.js (App Router) |
 | Language | TypeScript |
 | Styling | Tailwind CSS |
-| Blockchain data | Blockscout API |
+| Blockchain data | Blockscout Pro API |
 | AI | Groq (LLaMA) |
 
 ## Running locally
